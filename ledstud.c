@@ -1,6 +1,77 @@
 #include "ch32v003fun.h"
 #include <stdio.h>
 
+
+static inline void draw_frame( uint8_t* bitmap, uint32_t on, uint32_t off )
+{
+
+	GPIOC->OUTDR = 0x00FF;
+	DelaySysTick( off );
+
+	GPIOD->OUTDR = 1<<0;
+	GPIOA->OUTDR = 0;
+	GPIOC->OUTDR = bitmap[0];
+	DelaySysTick( on );
+
+	GPIOC->OUTDR = 0x00FF;
+	DelaySysTick( off );
+
+	GPIOD->OUTDR = 0;
+	GPIOA->OUTDR = 1<<2;
+	GPIOC->OUTDR = bitmap[1];
+	DelaySysTick( on );
+
+	GPIOC->OUTDR = 0x00FF;
+	DelaySysTick( off );
+
+	GPIOD->OUTDR = 0;
+	GPIOA->OUTDR = 1<<1;
+	GPIOC->OUTDR = bitmap[2];
+	DelaySysTick( on );
+
+	GPIOC->OUTDR = 0x00FF;
+	DelaySysTick( off );
+
+	GPIOD->OUTDR = 1<<6;
+	GPIOA->OUTDR = 0;
+	GPIOC->OUTDR = bitmap[3];
+	DelaySysTick( on );
+
+	GPIOC->OUTDR = 0x00FF;
+	DelaySysTick( off );
+
+	GPIOD->OUTDR = 1<<5;
+	GPIOA->OUTDR = 0;
+	GPIOC->OUTDR = bitmap[4];
+	DelaySysTick( on );
+
+	GPIOC->OUTDR = 0x00FF;
+	DelaySysTick( off );
+
+	GPIOD->OUTDR = 1<<4;
+	GPIOA->OUTDR = 0;
+	GPIOC->OUTDR = bitmap[5];
+	DelaySysTick( on );
+
+	GPIOC->OUTDR = 0x00FF;
+	DelaySysTick( off );
+
+	GPIOD->OUTDR = 1<<3;
+	GPIOA->OUTDR = 0;
+	GPIOC->OUTDR = bitmap[6];
+	DelaySysTick( on );
+
+	GPIOC->OUTDR = 0x00FF;
+	DelaySysTick( off );
+
+	GPIOD->OUTDR = 1<<2;
+	GPIOA->OUTDR = 0;
+	GPIOC->OUTDR = bitmap[7];
+	DelaySysTick( on );
+
+}
+
+
 int main()
 {
 	SystemInit();
@@ -37,76 +108,9 @@ int main()
 				 | ((GPIO_Speed_10MHz | GPIO_CNF_OUT_PP)<<(4*6))
 				 | ((GPIO_Speed_10MHz | GPIO_CNF_OUT_PP)<<(4*7));
 
-#define ON  1
-#define OFF 100
-#define PAT1 0x55
-#define PAT2 0xAA
-
 	while(1)
 	{
-		GPIOC->OUTDR = 0x00FF; // display off
-		Delay_Ms( OFF );
-
-		GPIOD->OUTDR = 1<<0;
-		GPIOA->OUTDR = 0;
-		GPIOC->OUTDR = PAT1;
-		Delay_Ms(ON);
-
-		GPIOC->OUTDR = 0x00FF;
-		Delay_Ms( OFF );
-
-		GPIOD->OUTDR = 0;
-		GPIOA->OUTDR = 1<<2;
-		GPIOC->OUTDR = PAT2;
-		Delay_Ms(ON);
-
-		GPIOC->OUTDR = 0x00FF;
-		Delay_Ms( OFF );
-
-		GPIOD->OUTDR = 0;
-		GPIOA->OUTDR = 1<<1;
-		GPIOC->OUTDR = PAT1;
-		Delay_Ms(ON);
-
-		GPIOC->OUTDR = 0x00FF;
-		Delay_Ms( OFF );
-
-		GPIOD->OUTDR = 1<<6;
-		GPIOA->OUTDR = 0;
-		GPIOC->OUTDR = PAT2;
-		Delay_Ms(ON);
-
-		GPIOC->OUTDR = 0x00FF;
-		Delay_Ms( OFF );
-
-		GPIOD->OUTDR = 1<<5;
-		GPIOA->OUTDR = 0;
-		GPIOC->OUTDR = PAT1;
-		Delay_Ms(ON);
-
-		GPIOC->OUTDR = 0x00FF;
-		Delay_Ms( OFF );
-
-		GPIOD->OUTDR = 1<<4;
-		GPIOA->OUTDR = 0;
-		GPIOC->OUTDR = PAT2;
-		Delay_Ms(ON);
-
-		GPIOC->OUTDR = 0x00FF;
-		Delay_Ms( OFF );
-
-		GPIOD->OUTDR = 1<<3;
-		GPIOA->OUTDR = 0;
-		GPIOC->OUTDR = PAT1;
-		Delay_Ms(ON);
-
-		GPIOC->OUTDR = 0x00FF;
-		Delay_Ms( OFF );
-
-		GPIOD->OUTDR = 1<<2;
-		GPIOA->OUTDR = 0;
-		GPIOC->OUTDR = PAT2;
-		Delay_Ms(ON);
-
+		const uint8_t frame[8]= { 0x00, 0x00, 0x55, 0x55, 0xAA, 0xAA, 0x00, 0x00 };
+		draw_frame( frame, 0.5*DELAY_US_TIME, 24*DELAY_US_TIME );
 	}
 }
