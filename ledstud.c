@@ -2,19 +2,15 @@
 #include <stdio.h>
 
 
-static inline void draw_frame( uint8_t* bitmap, uint32_t on, uint32_t off )
+static inline void draw_frame( const uint8_t* bitmap, uint32_t on, uint32_t off )
 {
-
-	GPIOC->OUTDR = 0x00FF;
-	DelaySysTick( off );
-
 	GPIOD->OUTDR = 1<<0;
 	GPIOA->OUTDR = 0;
 	GPIOC->OUTDR = bitmap[0];
 	DelaySysTick( on );
 
 	GPIOC->OUTDR = 0x00FF;
-	DelaySysTick( off );
+	DelaySysTick( off-on );
 
 	GPIOD->OUTDR = 0;
 	GPIOA->OUTDR = 1<<2;
@@ -22,7 +18,7 @@ static inline void draw_frame( uint8_t* bitmap, uint32_t on, uint32_t off )
 	DelaySysTick( on );
 
 	GPIOC->OUTDR = 0x00FF;
-	DelaySysTick( off );
+	DelaySysTick( off-on );
 
 	GPIOD->OUTDR = 0;
 	GPIOA->OUTDR = 1<<1;
@@ -30,7 +26,7 @@ static inline void draw_frame( uint8_t* bitmap, uint32_t on, uint32_t off )
 	DelaySysTick( on );
 
 	GPIOC->OUTDR = 0x00FF;
-	DelaySysTick( off );
+	DelaySysTick( off-on );
 
 	GPIOD->OUTDR = 1<<6;
 	GPIOA->OUTDR = 0;
@@ -38,7 +34,7 @@ static inline void draw_frame( uint8_t* bitmap, uint32_t on, uint32_t off )
 	DelaySysTick( on );
 
 	GPIOC->OUTDR = 0x00FF;
-	DelaySysTick( off );
+	DelaySysTick( off-on );
 
 	GPIOD->OUTDR = 1<<5;
 	GPIOA->OUTDR = 0;
@@ -46,7 +42,7 @@ static inline void draw_frame( uint8_t* bitmap, uint32_t on, uint32_t off )
 	DelaySysTick( on );
 
 	GPIOC->OUTDR = 0x00FF;
-	DelaySysTick( off );
+	DelaySysTick( off-on );
 
 	GPIOD->OUTDR = 1<<4;
 	GPIOA->OUTDR = 0;
@@ -54,7 +50,7 @@ static inline void draw_frame( uint8_t* bitmap, uint32_t on, uint32_t off )
 	DelaySysTick( on );
 
 	GPIOC->OUTDR = 0x00FF;
-	DelaySysTick( off );
+	DelaySysTick( off-on );
 
 	GPIOD->OUTDR = 1<<3;
 	GPIOA->OUTDR = 0;
@@ -62,13 +58,15 @@ static inline void draw_frame( uint8_t* bitmap, uint32_t on, uint32_t off )
 	DelaySysTick( on );
 
 	GPIOC->OUTDR = 0x00FF;
-	DelaySysTick( off );
+	DelaySysTick( off-on );
 
 	GPIOD->OUTDR = 1<<2;
 	GPIOA->OUTDR = 0;
 	GPIOC->OUTDR = bitmap[7];
 	DelaySysTick( on );
 
+	GPIOC->OUTDR = 0x00FF;
+	DelaySysTick( off-on );
 }
 
 
@@ -108,9 +106,18 @@ int main()
 				 | ((GPIO_Speed_10MHz | GPIO_CNF_OUT_PP)<<(4*6))
 				 | ((GPIO_Speed_10MHz | GPIO_CNF_OUT_PP)<<(4*7));
 
+	const uint8_t frames[]= { 
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00,
+0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00,
+0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00,
+};
 	while(1)
 	{
-		const uint8_t frame[8]= { 0x00, 0x00, 0x55, 0x55, 0xAA, 0xAA, 0x00, 0x00 };
-		draw_frame( frame, 0.5*DELAY_US_TIME, 24*DELAY_US_TIME );
+		uint8_t * frame = &frames[0];
+		draw_frame( &frame[0],  0.05*DELAY_US_TIME, 5*DELAY_US_TIME );
+		draw_frame( &frame[8],  0.20*DELAY_US_TIME, 5*DELAY_US_TIME );
+		draw_frame( &frame[16], 0.80*DELAY_US_TIME, 5*DELAY_US_TIME );
+		draw_frame( &frame[24], 3.20*DELAY_US_TIME, 5*DELAY_US_TIME );
 	}
 }
