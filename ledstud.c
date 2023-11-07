@@ -109,33 +109,25 @@ int main()
 
 	const uint8_t allon[8] = {0xC3,0x81,0x00,0x00,0x00,0x00,0x81,0xC3};
 
-	while(1)
-	{
-		uint8_t * frame = &frames[0];
-		uint8_t * last = &frames[sizeof(frames) - 32];
-		uint8_t timer = 0;
+	uint8_t * frame = &frames[0];
+	uint8_t * last = &frames[sizeof(frames) - 32];
+	int8_t step = 32;
+	uint8_t timer = 0;
 
-		while (frame != last) {
-			//draw_frame( allon,  0.1*DELAY_US_TIME, 1*DELAY_US_TIME );
-			draw_frame( &frame[0],  0.10*DELAY_US_TIME, 10*DELAY_US_TIME );
-			draw_frame( &frame[8],  0.40*DELAY_US_TIME, 10*DELAY_US_TIME );
-			draw_frame( &frame[16], 1.60*DELAY_US_TIME, 10*DELAY_US_TIME );
-			draw_frame( &frame[24], 6.40*DELAY_US_TIME, 10*DELAY_US_TIME );
-			if (timer++ > 40) {
-				frame += 32;
-				timer = 0;
+	while (1) {
+		//draw_frame( allon,  0.1*DELAY_US_TIME, 1*DELAY_US_TIME );
+		draw_frame( &frame[0],  0.10*DELAY_US_TIME, 10*DELAY_US_TIME );
+		draw_frame( &frame[8],  0.40*DELAY_US_TIME, 10*DELAY_US_TIME );
+		draw_frame( &frame[16], 1.60*DELAY_US_TIME, 10*DELAY_US_TIME );
+		draw_frame( &frame[24], 6.40*DELAY_US_TIME, 10*DELAY_US_TIME );
+		if (timer++ > 30) {
+			timer = 0;
+			frame += step;
+			if (frame == last) {
+				step = -32;
+			} else if (frame == &frames[0]) {
+				step = 32;
 			}
 		}
-//		while (frame != frames) {
-//			draw_frame( allon,  0.1*DELAY_US_TIME, 1*DELAY_US_TIME );
-//			draw_frame( &frame[0],  0.10*DELAY_US_TIME, 10*DELAY_US_TIME );
-//			draw_frame( &frame[8],  0.40*DELAY_US_TIME, 10*DELAY_US_TIME );
-//			draw_frame( &frame[16], 1.60*DELAY_US_TIME, 10*DELAY_US_TIME );
-//			draw_frame( &frame[24], 6.40*DELAY_US_TIME, 10*DELAY_US_TIME );
-//			if (timer++ > 40) {
-//				frame -= 32;
-//				timer = 0;
-//			}
-//		}
 	}
 }
