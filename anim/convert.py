@@ -8,6 +8,7 @@ if len(sys.argv) != 2:
 	exit()
 
 maxes = []
+scale = 1.0#255.0/220.0
 
 def image_to_bytes(i):
 	im = Image.open(i)
@@ -20,7 +21,7 @@ def image_to_bytes(i):
 	for y in range(h):
 		b.append( [0,0,0,0] )
 		for x in range(w):
-			p = 255-pixels[y*8+x]
+			p = 255-int(pixels[y*8+x]*scale)
 			p4 = (p>>7)&1
 			p3 = (p>>6)&1
 			p2 = (p>>5)&1

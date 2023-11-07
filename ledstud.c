@@ -107,6 +107,8 @@ int main()
 				 | ((GPIO_Speed_10MHz | GPIO_CNF_OUT_PP)<<(4*6))
 				 | ((GPIO_Speed_10MHz | GPIO_CNF_OUT_PP)<<(4*7));
 
+	const uint8_t allon[8] = {0xC3,0x81,0x00,0x00,0x00,0x00,0x81,0xC3};
+
 	while(1)
 	{
 		uint8_t * frame = &frames[0];
@@ -114,14 +116,26 @@ int main()
 		uint8_t timer = 0;
 
 		while (frame != last) {
-			draw_frame( &frame[0],  0.05*DELAY_US_TIME, 5*DELAY_US_TIME );
-			draw_frame( &frame[8],  0.20*DELAY_US_TIME, 5*DELAY_US_TIME );
-			draw_frame( &frame[16], 0.80*DELAY_US_TIME, 5*DELAY_US_TIME );
-			draw_frame( &frame[24], 3.20*DELAY_US_TIME, 5*DELAY_US_TIME );
-			if (timer++ > 100) {
+			//draw_frame( allon,  0.1*DELAY_US_TIME, 1*DELAY_US_TIME );
+			draw_frame( &frame[0],  0.10*DELAY_US_TIME, 10*DELAY_US_TIME );
+			draw_frame( &frame[8],  0.40*DELAY_US_TIME, 10*DELAY_US_TIME );
+			draw_frame( &frame[16], 1.60*DELAY_US_TIME, 10*DELAY_US_TIME );
+			draw_frame( &frame[24], 6.40*DELAY_US_TIME, 10*DELAY_US_TIME );
+			if (timer++ > 40) {
 				frame += 32;
 				timer = 0;
 			}
 		}
+//		while (frame != frames) {
+//			draw_frame( allon,  0.1*DELAY_US_TIME, 1*DELAY_US_TIME );
+//			draw_frame( &frame[0],  0.10*DELAY_US_TIME, 10*DELAY_US_TIME );
+//			draw_frame( &frame[8],  0.40*DELAY_US_TIME, 10*DELAY_US_TIME );
+//			draw_frame( &frame[16], 1.60*DELAY_US_TIME, 10*DELAY_US_TIME );
+//			draw_frame( &frame[24], 6.40*DELAY_US_TIME, 10*DELAY_US_TIME );
+//			if (timer++ > 40) {
+//				frame -= 32;
+//				timer = 0;
+//			}
+//		}
 	}
 }
