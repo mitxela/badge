@@ -116,11 +116,11 @@ int main()
 
 	while (1) {
 		//draw_frame( allon,  0.1*DELAY_US_TIME, 1*DELAY_US_TIME );
-		draw_frame( &frame[0],  0.10*DELAY_US_TIME, 10*DELAY_US_TIME );
-		draw_frame( &frame[8],  0.40*DELAY_US_TIME, 10*DELAY_US_TIME );
-		draw_frame( &frame[16], 1.60*DELAY_US_TIME, 10*DELAY_US_TIME );
-		draw_frame( &frame[24], 6.40*DELAY_US_TIME, 10*DELAY_US_TIME );
-		if (timer++ > 30) {
+		draw_frame( &frame[0],  0.50*DELAY_US_TIME, 5*DELAY_US_TIME );
+		draw_frame( &frame[8],  1.0*DELAY_US_TIME, 5*DELAY_US_TIME );
+		draw_frame( &frame[16], 2.0*DELAY_US_TIME, 5*DELAY_US_TIME );
+		draw_frame( &frame[24], 4.0*DELAY_US_TIME, 5*DELAY_US_TIME );
+		if (timer++ > 60) {
 			timer = 0;
 			frame += step;
 			if (frame == last) {

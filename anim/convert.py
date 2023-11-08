@@ -8,7 +8,8 @@ if len(sys.argv) != 2:
 	exit()
 
 maxes = []
-scale = 1.0#255.0/220.0
+gamma = 2
+scale = 233**gamma
 
 def image_to_bytes(i):
 	im = Image.open(i)
@@ -19,19 +20,19 @@ def image_to_bytes(i):
 
 	b = []
 	for y in range(h):
-		b.append( [0,0,0,0] )
+		b.append( [0xFF,0xFF,0xFF,0xFF] )
 		for x in range(w):
-			p = 255-int(pixels[y*8+x]*scale)
-			p4 = (p>>7)&1
-			p3 = (p>>6)&1
-			p2 = (p>>5)&1
-			p1 = (p>>4)&1
-			#print(p4,p3,p2,p1,end=", ")
-			b[y][0] |= p1<<x
-			b[y][1] |= p2<<x
-			b[y][2] |= p3<<x
-			b[y][3] |= p4<<x
-		#print(list(map(bin, b)))
+			#p = 255-int(pixels[y*8+x]*scale)
+			p = pixels[y*8+x]**gamma
+			if p > scale*4/5:
+				b[y][3] &= ~(1<<x)
+			elif p > scale*3/5:
+				b[y][2] &= ~(1<<x)
+			elif p > scale*2/5:
+				b[y][1] &= ~(1<<x)
+			elif p > scale*1/5:
+				b[y][0] &= ~(1<<x)
+
 	for s in range(4):
 		for y in range(h):
 			print(f"0x{b[y][s]:02X}",end=",")
