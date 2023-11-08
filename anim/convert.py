@@ -22,16 +22,17 @@ def image_to_bytes(i):
 	for y in range(h):
 		b.append( [0xFF,0xFF,0xFF,0xFF] )
 		for x in range(w):
-			#p = 255-int(pixels[y*8+x]*scale)
-			p = pixels[y*8+x]**gamma
-			if p > scale*4/5:
-				b[y][3] &= ~(1<<x)
-			elif p > scale*3/5:
-				b[y][2] &= ~(1<<x)
-			elif p > scale*2/5:
-				b[y][1] &= ~(1<<x)
-			elif p > scale*1/5:
-				b[y][0] &= ~(1<<x)
+			p = (pixels[y*8+x]**gamma) *0xF/scale
+			p = int(round(p))
+			print(p, file=sys.stderr)
+			p4 = (p>>3)&1
+			p3 = (p>>2)&1
+			p2 = (p>>1)&1
+			p1 = (p>>0)&1
+			b[y][0] &= ~(p1<<x)
+			b[y][1] &= ~(p2<<x)
+			b[y][2] &= ~(p3<<x)
+			b[y][3] &= ~(p4<<x)
 
 	for s in range(4):
 		for y in range(h):
