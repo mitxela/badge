@@ -24,7 +24,6 @@ def image_to_bytes(i):
 		for x in range(w):
 			p = (pixels[y*8+x]**gamma) *0xF/scale
 			p = int(round(p))
-			print(p, file=sys.stderr)
 			p4 = (p>>3)&1
 			p3 = (p>>2)&1
 			p2 = (p>>1)&1
