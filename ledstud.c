@@ -89,6 +89,49 @@ int main()
 	RCC->RSTSCKR |= RCC_RMVF; // clear reset flags
 
 	if (mode == MODE_SLEEP) {
+
+		// Power consumption is reduced significantly if GPIOs are enabled and set to pull-up
+		RCC->APB2PCENR |= RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOC | RCC_APB2Periph_GPIOD;
+
+		GPIOA->CFGLR = (GPIO_CNF_IN_PUPD<<(4*2)) |
+					   (GPIO_CNF_IN_PUPD<<(4*1));
+		GPIOA->BSHR = GPIO_BSHR_BS2 |
+					  GPIO_BSHR_BS1;
+
+		GPIOD->CFGLR = (GPIO_CNF_IN_PUPD<<(4*7)) |
+					   (GPIO_CNF_IN_PUPD<<(4*6)) |
+					   (GPIO_CNF_IN_PUPD<<(4*5)) |
+					   (GPIO_CNF_IN_PUPD<<(4*4)) |
+					   (GPIO_CNF_IN_PUPD<<(4*3)) |
+					   (GPIO_CNF_IN_PUPD<<(4*2)) |
+					   (GPIO_CNF_IN_PUPD<<(4*1)) |
+					   (GPIO_CNF_IN_PUPD<<(4*0));
+		GPIOD->BSHR = GPIO_BSHR_BS7 |
+					  GPIO_BSHR_BS6 |
+					  GPIO_BSHR_BS5 |
+					  GPIO_BSHR_BS4 |
+					  GPIO_BSHR_BS3 |
+					  GPIO_BSHR_BS2 |
+					  GPIO_BSHR_BS1 |
+					  GPIO_BSHR_BS0;
+
+		GPIOC->CFGLR = (GPIO_CNF_IN_PUPD<<(4*7)) |
+					   (GPIO_CNF_IN_PUPD<<(4*6)) |
+					   (GPIO_CNF_IN_PUPD<<(4*5)) |
+					   (GPIO_CNF_IN_PUPD<<(4*4)) |
+					   (GPIO_CNF_IN_PUPD<<(4*3)) |
+					   (GPIO_CNF_IN_PUPD<<(4*2)) |
+					   (GPIO_CNF_IN_PUPD<<(4*1)) |
+					   (GPIO_CNF_IN_PUPD<<(4*0));
+		GPIOC->BSHR = GPIO_BSHR_BS7 |
+					  GPIO_BSHR_BS6 |
+					  GPIO_BSHR_BS5 |
+					  GPIO_BSHR_BS4 |
+					  GPIO_BSHR_BS3 |
+					  GPIO_BSHR_BS2 |
+					  GPIO_BSHR_BS1 |
+					  GPIO_BSHR_BS0;
+
 		NVIC->SCTLR |= (1<<2); //SLEEPDEEP
 		PWR->CTLR &= PWR_CTLR_PDDS;
 		asm volatile ("wfi");
