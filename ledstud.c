@@ -3,7 +3,13 @@
 
 #include "anim/frames.h"
 
-uint8_t state __attribute__ ((section (".no_init")));
+enum {
+	MODE_VIDEO = 0,
+	MODE_SLEEP,
+	NUM_MODES
+};
+
+uint8_t mode __attribute__ ((section (".no_init")));
 
 static inline void draw_frame( const uint8_t* bitmap, uint32_t on, uint32_t off )
 {
@@ -77,6 +83,17 @@ int main()
 {
 	SystemInit();
 
+	// check power-on flag
+	mode = (RCC->RSTSCKR & RCC_PORRSTF)? 0 : (mode+1)%NUM_MODES ;
+
+	RCC->RSTSCKR |= RCC_RMVF; // clear reset flags
+
+	if (mode == MODE_SLEEP) {
+		NVIC->SCTLR |= (1<<2); //SLEEPDEEP
+		PWR->CTLR &= PWR_CTLR_PDDS;
+		asm volatile ("wfi");
+	}
+
 	RCC->APB2PCENR |= RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOD | RCC_APB2Periph_GPIOC;
 
 	// Anodes shuffled
@@ -115,16 +132,6 @@ int main()
 	uint8_t * last = &frames[sizeof(frames) - 32];
 	int8_t step = 32;
 	uint8_t timer = 0;
-
-	// power-on flag
-	if (RCC->RSTSCKR & RCC_PORRSTF) {
-		state = 0;
-	} else {
-		state++;
-	}
-	RCC->RSTSCKR |= RCC_RMVF; // clear reset flags
-
-	printf("state: %d\n",state);
 
 	while (1) {
 		//draw_frame( allon,  0.1*DELAY_US_TIME, 1*DELAY_US_TIME );
