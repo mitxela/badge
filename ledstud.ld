@@ -124,6 +124,12 @@ SECTIONS
       PROVIDE( _edata = .);
     } >RAM AT>FLASH
 
+    .no_init :
+    {
+      . = ALIGN(4);
+      *(.no_init)
+    } > RAM
+
     .bss :
     {
       . = ALIGN(4);

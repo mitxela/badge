@@ -3,6 +3,8 @@
 
 #include "anim/frames.h"
 
+uint8_t state __attribute__ ((section (".no_init")));
+
 static inline void draw_frame( const uint8_t* bitmap, uint32_t on, uint32_t off )
 {
 	GPIOD->OUTDR = 1<<0;
@@ -113,6 +115,16 @@ int main()
 	uint8_t * last = &frames[sizeof(frames) - 32];
 	int8_t step = 32;
 	uint8_t timer = 0;
+
+	// power-on flag
+	if (RCC->RSTSCKR & RCC_PORRSTF) {
+		state = 0;
+	} else {
+		state++;
+	}
+	RCC->RSTSCKR |= RCC_RMVF; // clear reset flags
+
+	printf("state: %d\n",state);
 
 	while (1) {
 		//draw_frame( allon,  0.1*DELAY_US_TIME, 1*DELAY_US_TIME );
