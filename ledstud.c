@@ -2,9 +2,11 @@
 #include <stdio.h>
 
 #include "anim/frames.h"
+#include "anim/font.h"
 
 enum {
-	MODE_VIDEO = 0,
+	MODE_TEXT,
+	MODE_VIDEO,
 	MODE_SLEEP,
 	NUM_MODES
 };
@@ -137,6 +139,8 @@ int main()
 		asm volatile ("wfi");
 	}
 
+	// All other modes - enable display
+
 	RCC->APB2PCENR |= RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOD | RCC_APB2Periph_GPIOC;
 
 	// Anodes shuffled
@@ -169,15 +173,36 @@ int main()
 				 | ((GPIO_Speed_10MHz | GPIO_CNF_OUT_PP)<<(4*6))
 				 | ((GPIO_Speed_10MHz | GPIO_CNF_OUT_PP)<<(4*7));
 
-	const uint8_t allon[8] = {0xC3,0x81,0x00,0x00,0x00,0x00,0x81,0xC3};
 
 	uint8_t * frame = &frames[0];
 	uint8_t * last = &frames[sizeof(frames) - 32];
 	int8_t step = 32;
-	uint8_t timer = 0;
+	int timer = 0;
 
+	uint8_t framebuffer[8] = { [0 ... 7] = 0xFF};
+	const char * msg = "This is a test! ";
+	char* cursor = msg;
+
+	switch (mode) {
+
+	case MODE_TEXT:
 	while (1) {
-		//draw_frame( allon,  0.1*DELAY_US_TIME, 1*DELAY_US_TIME );
+		
+		draw_frame( framebuffer,  2*DELAY_US_TIME, 5*DELAY_US_TIME );
+
+		if (timer++ > 10000) {
+			memcpy(framebuffer, &font[ 5*(cursor[0]-' ') ], 5);
+			cursor++;
+			if (*cursor == 0) cursor=msg;
+			timer = 0;
+
+		}
+
+
+	}
+
+	case MODE_VIDEO:
+	while (1) {
 		draw_frame( &frame[0],  0.50*DELAY_US_TIME, 5*DELAY_US_TIME );
 		draw_frame( &frame[8],  1.0*DELAY_US_TIME, 5*DELAY_US_TIME );
 		draw_frame( &frame[16], 2.0*DELAY_US_TIME, 5*DELAY_US_TIME );
@@ -191,5 +216,7 @@ int main()
 				step = 32;
 			}
 		}
+	}
+
 	}
 }
