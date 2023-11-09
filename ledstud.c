@@ -83,8 +83,8 @@ int main()
 {
 	SystemInit();
 
-	// check power-on flag
-	mode = (RCC->RSTSCKR & RCC_PORRSTF)? 0 : (mode+1)%NUM_MODES ;
+	// check reset-pin flag
+	mode = (RCC->RSTSCKR & RCC_PINRSTF)? (mode+1)%NUM_MODES : 0 ;
 
 	RCC->RSTSCKR |= RCC_RMVF; // clear reset flags
 
