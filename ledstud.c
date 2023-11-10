@@ -80,6 +80,70 @@ static inline void draw_frame( const uint8_t* bitmap, uint32_t on, uint32_t off 
 	DelaySysTick( off-on );
 }
 
+void mode_video()
+{
+	uint8_t * frame = &frames[0];
+	uint8_t * last = &frames[sizeof(frames) - 32];
+	int8_t step = 32;
+	uint8_t timer = 0;
+
+	while (1) {
+		draw_frame( &frame[0],  0.50*DELAY_US_TIME, 5*DELAY_US_TIME );
+		draw_frame( &frame[8],  1.0*DELAY_US_TIME, 5*DELAY_US_TIME );
+		draw_frame( &frame[16], 2.0*DELAY_US_TIME, 5*DELAY_US_TIME );
+		draw_frame( &frame[24], 4.0*DELAY_US_TIME, 5*DELAY_US_TIME );
+		if (timer++ > 60) {
+			timer = 0;
+			frame += step;
+			if (frame == last) {
+				step = -32;
+			} else if (frame == &frames[0]) {
+				step = 32;
+			}
+		}
+	}
+}
+
+static inline void set_character( uint8_t* dst, char c )
+{
+	if (c >= '!' && c <= '~') {
+		memcpy(dst, &font[ 5*(c-'!') ], 5);
+	} else {
+		memset(dst, 0xFF, 5);
+	}
+}
+
+void mode_text()
+{
+	static const char msg[] = "  This is a test! or is it??? Really we should be able to have a very long message here without any problems, potentially stupidly long...  ";
+
+	unsigned int timer = 0;
+	uint8_t framebuffer[20] = { [0 ... 15] = 0xFF};
+	unsigned int cursor = 0;
+	unsigned int fraction = 0;
+
+	while (1) {
+		
+		draw_frame( &framebuffer[5],  2*DELAY_US_TIME, 5*DELAY_US_TIME );
+
+		if (timer++ > 1500) {
+			timer = 0;
+
+			memset(&framebuffer[5], 0xFF, 8);
+			set_character(&framebuffer[5-fraction], msg[cursor]);
+			set_character(&framebuffer[5+6-fraction], msg[cursor+1]);
+			set_character(&framebuffer[5+6+6-fraction], msg[cursor+2]);
+			if (fraction++ >4) {
+				fraction=0;
+				cursor++;
+			}
+			if (cursor == (sizeof msg) -2) {
+				cursor=0;
+			}
+		}
+	}
+}
+
 
 int main()
 {
@@ -173,50 +237,8 @@ int main()
 				 | ((GPIO_Speed_10MHz | GPIO_CNF_OUT_PP)<<(4*6))
 				 | ((GPIO_Speed_10MHz | GPIO_CNF_OUT_PP)<<(4*7));
 
-
-	uint8_t * frame = &frames[0];
-	uint8_t * last = &frames[sizeof(frames) - 32];
-	int8_t step = 32;
-	int timer = 0;
-
-	uint8_t framebuffer[8] = { [0 ... 7] = 0xFF};
-	const char * msg = "This is a test! ";
-	char* cursor = msg;
-
 	switch (mode) {
-
-	case MODE_TEXT:
-	while (1) {
-		
-		draw_frame( framebuffer,  2*DELAY_US_TIME, 5*DELAY_US_TIME );
-
-		if (timer++ > 10000) {
-			memcpy(framebuffer, &font[ 5*(cursor[0]-' ') ], 5);
-			cursor++;
-			if (*cursor == 0) cursor=msg;
-			timer = 0;
-
-		}
-
-
-	}
-
-	case MODE_VIDEO:
-	while (1) {
-		draw_frame( &frame[0],  0.50*DELAY_US_TIME, 5*DELAY_US_TIME );
-		draw_frame( &frame[8],  1.0*DELAY_US_TIME, 5*DELAY_US_TIME );
-		draw_frame( &frame[16], 2.0*DELAY_US_TIME, 5*DELAY_US_TIME );
-		draw_frame( &frame[24], 4.0*DELAY_US_TIME, 5*DELAY_US_TIME );
-		if (timer++ > 60) {
-			timer = 0;
-			frame += step;
-			if (frame == last) {
-				step = -32;
-			} else if (frame == &frames[0]) {
-				step = 32;
-			}
-		}
-	}
-
+		case MODE_VIDEO: mode_video();
+		case MODE_TEXT: mode_text();
 	}
 }
