@@ -1,12 +1,14 @@
 #include "ch32v003fun.h"
 #include <stdio.h>
+#include <string.h>
 
 #include "anim/frames.h"
 #include "anim/font.h"
 
 enum {
-	MODE_TEXT,
+	MODE_BLINKY,
 	MODE_VIDEO,
+	MODE_TEXT,
 	MODE_SLEEP,
 	NUM_MODES
 };
@@ -88,7 +90,7 @@ void mode_video()
 	uint8_t timer = 0;
 
 	while (1) {
-		draw_frame( &frame[0],  0.50*DELAY_US_TIME, 5*DELAY_US_TIME );
+		draw_frame( &frame[0],  0.5*DELAY_US_TIME, 5*DELAY_US_TIME );
 		draw_frame( &frame[8],  1.0*DELAY_US_TIME, 5*DELAY_US_TIME );
 		draw_frame( &frame[16], 2.0*DELAY_US_TIME, 5*DELAY_US_TIME );
 		draw_frame( &frame[24], 4.0*DELAY_US_TIME, 5*DELAY_US_TIME );
@@ -115,7 +117,7 @@ static inline void set_character( uint8_t* dst, char c )
 
 void mode_text()
 {
-	static const char msg[] = "  This is a test! or is it??? Really we should be able to have a very long message here without any problems, potentially stupidly long...  ";
+	static const char msg[] = " This is a test! or is it??? Really we should be able to have a very long message here without any problems, potentially stupidly long...  ";
 
 	unsigned int timer = 0;
 	uint8_t framebuffer[20] = { [0 ... 15] = 0xFF};
@@ -123,7 +125,7 @@ void mode_text()
 	unsigned int fraction = 0;
 
 	while (1) {
-		
+
 		draw_frame( &framebuffer[5],  2*DELAY_US_TIME, 5*DELAY_US_TIME );
 
 		if (timer++ > 1500) {
@@ -144,6 +146,40 @@ void mode_text()
 	}
 }
 
+static uint32_t seed;
+int32_t random(void) {
+	return seed = seed * 16807 % 0x7FFFFFFF;
+}
+
+void mode_blinky()
+{
+	uint8_t buffer[8] = { 0 };
+	uint32_t period[64] = { [0 ... 63] = 0xffffffff };
+	uint32_t phase[64] = {0};
+
+	seed = SysTick->CNT;
+
+	for (int i =0; i<64; i++) {
+		//period[i] = 8000+(random()>>22);
+		period[i] = 8000+(random() % 2000);
+	}
+
+	while (1) {
+		draw_frame( &buffer[0],  2*DELAY_US_TIME, 5*DELAY_US_TIME );
+
+		for (int i =0; i<8; i++) {
+			for (int j =0; j<8; j++) {
+				uint8_t k = i*8 +j;
+				phase[k]++;
+				if (phase[k]>period[k]) {
+					phase[k]=0;
+					buffer[ i ] ^= (1<<j); 
+				}
+			}
+		}
+	}
+
+}
 
 int main()
 {
@@ -240,5 +276,6 @@ int main()
 	switch (mode) {
 		case MODE_VIDEO: mode_video();
 		case MODE_TEXT: mode_text();
+		case MODE_BLINKY: mode_blinky();
 	}
 }
