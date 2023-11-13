@@ -6,9 +6,9 @@
 #include "anim/font.h"
 
 enum {
-	MODE_BLINKY,
 	MODE_VIDEO,
 	MODE_TEXT,
+	MODE_BLINKY,
 	MODE_SLEEP,
 	NUM_MODES
 };
@@ -158,10 +158,13 @@ void mode_blinky()
 	uint32_t phase[64] = {0};
 
 	seed = SysTick->CNT;
+	uint32_t spread = random() % 1024;
+	uint32_t offset = 4000 + (random() % 8192);
+
+	//printf("%d, %d\n",offset,spread);
 
 	for (int i =0; i<64; i++) {
-		//period[i] = 8000+(random()>>22);
-		period[i] = 8000+(random() % 2000);
+		period[i] = offset + (random() % spread);
 	}
 
 	while (1) {
