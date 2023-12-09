@@ -17,7 +17,7 @@ for c in range(95):
 		for y in range(ch):
 			p = pixels[ y*w + c*w*cs +w +x ]
 			if p<128:
-				b[ x ] &= ~(1<<y)
+				b[ x ] &= ~(1<<(7-y))
 
 	for y in range(w):
 		print(f"0x{b[y]:02X}",end=",")

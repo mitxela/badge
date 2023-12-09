@@ -117,7 +117,7 @@ static inline void set_character( uint8_t* dst, char c )
 
 void mode_text()
 {
-	static const char msg[] = " This is a test! or is it??? Really we should be able to have a very long message here without any problems, potentially stupidly long...  ";
+	static const char msg[] = " This badge is powered by a CH32V003, a RISC-V 48MHz microcontroller  ";
 
 	unsigned int timer = 0;
 	uint8_t framebuffer[20] = { [0 ... 15] = 0xFF};
