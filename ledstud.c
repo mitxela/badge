@@ -82,6 +82,68 @@ static inline void draw_frame( const uint8_t* bitmap, uint32_t on, uint32_t off 
 	DelaySysTick( off-on );
 }
 
+static inline void draw_frame_fast( const uint8_t* bitmap )
+{
+//#define fast_delay() asm volatile("\nnop\nnop\nnop\nnop\nnop\nnop\nnop")
+#define fast_delay() DelaySysTick(10)
+
+	GPIOD->OUTDR = 1<<0;
+	GPIOA->OUTDR = 0;
+	GPIOC->OUTDR = bitmap[0];
+	fast_delay();
+
+	GPIOC->OUTDR = 0x00FF;
+
+	GPIOD->OUTDR = 0;
+	GPIOA->OUTDR = 1<<2;
+	GPIOC->OUTDR = bitmap[1];
+	fast_delay();
+
+	GPIOC->OUTDR = 0x00FF;
+
+	GPIOD->OUTDR = 0;
+	GPIOA->OUTDR = 1<<1;
+	GPIOC->OUTDR = bitmap[2];
+	fast_delay();
+
+	GPIOC->OUTDR = 0x00FF;
+
+	GPIOD->OUTDR = 1<<6;
+	GPIOA->OUTDR = 0;
+	GPIOC->OUTDR = bitmap[3];
+	fast_delay();
+
+	GPIOC->OUTDR = 0x00FF;
+
+	GPIOD->OUTDR = 1<<5;
+	GPIOA->OUTDR = 0;
+	GPIOC->OUTDR = bitmap[4];
+	fast_delay();
+
+	GPIOC->OUTDR = 0x00FF;
+
+	GPIOD->OUTDR = 1<<4;
+	GPIOA->OUTDR = 0;
+	GPIOC->OUTDR = bitmap[5];
+	fast_delay();
+
+	GPIOC->OUTDR = 0x00FF;
+
+	GPIOD->OUTDR = 1<<3;
+	GPIOA->OUTDR = 0;
+	GPIOC->OUTDR = bitmap[6];
+	fast_delay();
+
+	GPIOC->OUTDR = 0x00FF;
+
+	GPIOD->OUTDR = 1<<2;
+	GPIOA->OUTDR = 0;
+	GPIOC->OUTDR = bitmap[7];
+	fast_delay();
+
+	GPIOC->OUTDR = 0x00FF;
+}
+
 void mode_video()
 {
 	uint8_t * frame = &frames[0];
@@ -168,7 +230,7 @@ void mode_blinky()
 	}
 
 	while (1) {
-		draw_frame( &buffer[0],  1, 2 );
+		draw_frame_fast( &buffer[0] );
 
 		for (int i =0; i<8; i++) {
 			for (int j =0; j<8; j++) {
