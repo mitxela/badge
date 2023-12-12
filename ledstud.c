@@ -90,11 +90,11 @@ void mode_video()
 	uint8_t timer = 0;
 
 	while (1) {
-		draw_frame( &frame[0],  0.5*DELAY_US_TIME, 5*DELAY_US_TIME );
-		draw_frame( &frame[8],  1.0*DELAY_US_TIME, 5*DELAY_US_TIME );
-		draw_frame( &frame[16], 2.0*DELAY_US_TIME, 5*DELAY_US_TIME );
-		draw_frame( &frame[24], 4.0*DELAY_US_TIME, 5*DELAY_US_TIME );
-		if (timer++ > 60) {
+		draw_frame( &frame[0],  1, 50 );
+		draw_frame( &frame[8],  2, 50 );
+		draw_frame( &frame[16], 4, 50 );
+		draw_frame( &frame[24], 8, 50 );
+		if (timer++ > 2) {
 			timer = 0;
 			frame += step;
 			if (frame == last) {
@@ -126,9 +126,9 @@ void mode_text()
 
 	while (1) {
 
-		draw_frame( &framebuffer[5],  2*DELAY_US_TIME, 5*DELAY_US_TIME );
+		draw_frame( &framebuffer[5],  4, 50 );
 
-		if (timer++ > 1500) {
+		if (timer++ > 90) {
 			timer = 0;
 
 			memset(&framebuffer[5], 0xFF, 8);
@@ -158,8 +158,8 @@ void mode_blinky()
 	uint32_t phase[64] = {0};
 
 	seed = SysTick->CNT;
-	uint32_t spread = random() % 1024;
-	uint32_t offset = 4000 + (random() % 8192);
+	uint32_t spread = random() % 256;
+	uint32_t offset = 300 + (random() % 512);
 
 	//printf("%d, %d\n",offset,spread);
 
@@ -168,7 +168,7 @@ void mode_blinky()
 	}
 
 	while (1) {
-		draw_frame( &buffer[0],  2*DELAY_US_TIME, 5*DELAY_US_TIME );
+		draw_frame( &buffer[0],  1, 2 );
 
 		for (int i =0; i<8; i++) {
 			for (int j =0; j<8; j++) {
@@ -243,6 +243,8 @@ int main()
 	}
 
 	// All other modes - enable display
+
+	RCC->CFGR0 |= (12<<4); // set AHB prescaler to 32 -> sysclk 1.5MHz
 
 	RCC->APB2PCENR |= RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOD | RCC_APB2Periph_GPIOC;
 
