@@ -10,7 +10,8 @@ enum {
 	MODE_TEXT,
 	MODE_BLINKY,
 	MODE_SLEEP,
-	NUM_MODES
+	NUM_MODES,
+	MODE_LEARN = 99 // outside of modulo loop
 };
 
 uint8_t mode __attribute__ ((section (".no_init")));
@@ -246,6 +247,29 @@ void mode_blinky()
 
 }
 
+void mode_learn()
+{
+	//start with ack animation
+	const uint8_t temp_anim[2][8] = {
+		{0x00,0x00,0x00,0x00,0xFF,0xFF,0xFF,0xFF},
+		{0xFF,0xFF,0xFF,0xFF,0x00,0x00,0x00,0x00}
+	};
+	for (int j=0;j<10;j++){
+		for (int i=0;i<200;i++) {
+			draw_frame( &temp_anim[0], 8, 50 );
+		}
+		for (int i=0;i<200;i++) {
+			draw_frame( &temp_anim[1], 8, 50 );
+		}
+	}
+
+
+	mode = MODE_TEXT-1;
+	NVIC_SystemReset();
+
+
+}
+
 void EXTI7_0_IRQHandler( void ) __attribute__((interrupt));
 void EXTI7_0_IRQHandler( void )
 {
@@ -255,8 +279,11 @@ void EXTI7_0_IRQHandler( void )
 
 	while((GPIOD->INDR & (1<<7)) == 0) {};
 
-	// AHB prescaler is 32, delay_ms_time/2 will be 16ms
-	if (SysTick->CNT - start > DELAY_MS_TIME/2) {
+	// AHB prescaler is 32
+	if (SysTick->CNT - start > 16*DELAY_MS_TIME) { // 512ms
+		mode = MODE_LEARN;
+	}
+	if (SysTick->CNT - start > DELAY_MS_TIME/2) { // 16ms
 		NVIC_SystemReset();
 		while(1) {};
 	}
@@ -268,8 +295,12 @@ int main()
 {
 	SystemInit();
 
-	// check software reset and not power-on reset
-	mode = ((RCC->RSTSCKR & RCC_SFTRSTF) && !(RCC->RSTSCKR & RCC_PORRSTF))? (mode+1)%NUM_MODES : 0 ;
+	if (mode!=MODE_LEARN) {
+		// check software reset and not power-on reset
+		if ((RCC->RSTSCKR & RCC_SFTRSTF) && !(RCC->RSTSCKR & RCC_PORRSTF)) {
+			mode = (mode+1)%NUM_MODES;
+		} else mode = 0;
+	}
 
 	RCC->RSTSCKR |= RCC_RMVF; // clear reset flags
 
@@ -379,5 +410,6 @@ int main()
 		case MODE_VIDEO: mode_video();
 		case MODE_TEXT: mode_text();
 		case MODE_BLINKY: mode_blinky();
+		case MODE_LEARN: mode_learn();
 	}
 }
