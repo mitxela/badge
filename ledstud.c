@@ -5,6 +5,15 @@
 #include "anim/frames.h"
 #include "anim/font.h"
 
+// AHB prescaler is set to 32
+#undef FUNCONF_SYSTEM_CORE_CLOCK  
+#define FUNCONF_SYSTEM_CORE_CLOCK 1500000  // 48MHz / 32 = 1.5MHz
+#undef DELAY_US_TIME
+#undef DELAY_MS_TIME
+#define DELAY_US_TIME ((FUNCONF_SYSTEM_CORE_CLOCK)/1000000)
+#define DELAY_MS_TIME ((FUNCONF_SYSTEM_CORE_CLOCK)/1000)
+
+
 enum {
 	MODE_VIDEO,
 	MODE_TEXT,
@@ -247,14 +256,88 @@ void mode_blinky()
 
 }
 
+void init_adc()
+{
+	RCC->APB2PRSTR |= RCC_APB2Periph_ADC1;
+	RCC->APB2PRSTR &= ~RCC_APB2Periph_ADC1;
+
+	RCC->CFGR0 &= ~(0x1F<<11); //RCC_ADCPRE = 0
+	ADC1->RSQR1 = 0;
+	ADC1->RSQR2 = 0;
+	ADC1->RSQR3 = 7;
+	// sampling time
+	ADC1->SAMPTR2 &= ~(ADC_SMP0<<(3*7));
+	ADC1->SAMPTR2 |= 7<<(3*7);
+
+	// turn on, set sw trig
+	ADC1->CTLR2 |= ADC_ADON | ADC_EXTSEL;
+	// reset calibration
+	ADC1->CTLR2 |= ADC_RSTCAL;
+	while(ADC1->CTLR2 & ADC_RSTCAL);
+	// calibrate
+	ADC1->CTLR2 |= ADC_CAL;
+	while(ADC1->CTLR2 & ADC_CAL);
+}
+
+
+uint16_t read_adc(void)
+{
+	ADC1->CTLR2 |= ADC_SWSTART;
+	while(!(ADC1->STATR & ADC_EOC));
+	return ADC1->RDATAR;
+}
+
+static inline _Bool read_input()
+{
+	#define threshold 0x100
+	ADC1->CTLR2 |= ADC_SWSTART;
+	while(!(ADC1->STATR & ADC_EOC));
+	return (ADC1->RDATAR > threshold);
+}
+
+
+uint8_t receive()
+{
+	#define bitperiod 150
+	#define numbits 7
+	uint8_t x = 0;
+	uint32_t until;
+
+	// wait for start condition
+	while (read_input());
+	until = SysTick->CNT;
+	#define wait(n) \
+		until += (n)*DELAY_MS_TIME; \
+		while( ((int32_t)( SysTick->CNT - until )) < 0 ) {};
+
+	wait(bitperiod/2);
+
+	if (read_input()) {printf("glitch\n");return 255;} // glitch
+
+	for (uint8_t i=0;i<numbits;i++) {
+		wait(bitperiod);
+		x |= ( read_input()?(1<<i):0 );
+	}
+
+	// expect stop bit
+	wait(bitperiod);
+	if (read_input()==0) printf("frame error\n");
+	while (read_input()==0);
+
+	return x;
+}
+
 void mode_learn()
 {
+	// cancel if button pressed again
+	mode = MODE_TEXT-1;
+
 	//start with ack animation
 	const uint8_t temp_anim[2][8] = {
 		{0x00,0x00,0x00,0x00,0xFF,0xFF,0xFF,0xFF},
 		{0xFF,0xFF,0xFF,0xFF,0x00,0x00,0x00,0x00}
 	};
-	for (int j=0;j<10;j++){
+	for (int j=0;j<15;j++){
 		for (int i=0;i<200;i++) {
 			draw_frame( &temp_anim[0], 8, 50 );
 		}
@@ -263,11 +346,65 @@ void mode_learn()
 		}
 	}
 
+	//RCC->APB2PCENR &= ~RCC_APB2Periph_AFIO;
+	NVIC_DisableIRQ( EXTI7_0_IRQn );
 
-	mode = MODE_TEXT-1;
+	// Enable op-amp on N1 (PD0) and P1 (PD7)
+	EXTEN->EXTEN_CTR |= EXTEN_OPA_EN | EXTEN_OPA_PSEL | EXTEN_OPA_NSEL;
+
+	// reset states
+	GPIOA->CFGLR = 0x44444444;
+	GPIOD->CFGLR = 0x44444444;
+	GPIOC->CFGLR = 0x44444444;
+	GPIOA->OUTDR = 0;
+	GPIOC->OUTDR = 0;
+	GPIOD->OUTDR = 0;
+
+	// set row 1 to row 8 as output high
+	GPIOC->CFGLR = 0xFFFFFFFF;
+	GPIOC->CFGLR |= (
+		(GPIO_Speed_10MHz | GPIO_CNF_OUT_PP)<<(4*0) |
+		(GPIO_Speed_10MHz | GPIO_CNF_OUT_PP)<<(4*1) |
+		(GPIO_Speed_10MHz | GPIO_CNF_OUT_PP)<<(4*2) |
+		(GPIO_Speed_10MHz | GPIO_CNF_OUT_PP)<<(4*3) |
+		(GPIO_Speed_10MHz | GPIO_CNF_OUT_PP)<<(4*4) |
+		(GPIO_Speed_10MHz | GPIO_CNF_OUT_PP)<<(4*5) |
+		(GPIO_Speed_10MHz | GPIO_CNF_OUT_PP)<<(4*6) |
+		(GPIO_Speed_10MHz | GPIO_CNF_OUT_PP)<<(4*7));
+	GPIOC->OUTDR |= 0xFF;
+
+	// PD7 (NRST) as input with pullup
+	GPIOD->CFGLR &= ~(0xf<<(4*7));
+	GPIOD->CFGLR |= ((GPIO_CNF_IN_PUPD)<<(4*7));
+	GPIOD->OUTDR |= (1<<7);
+
+	RCC->APB2PCENR |= RCC_APB2Periph_ADC1;
+	GPIOD->CFGLR &= ~((0xf<<(4*4)) | (0xf<<(4*5)));
+	GPIOD->CFGLR |= ((GPIO_Speed_10MHz | GPIO_CNF_OUT_PP)<<(4*5));
+	GPIOD->OUTDR |= (1<<5);
+	GPIOA->CFGLR &= ~(0xf<<(4*1));
+	GPIOA->OUTDR &= ~(1<<1);
+	init_adc();
+
+
+#ifdef bargraph
+	char bar[65]={0};
+	while (1) {
+		uint16_t x = read_adc();
+		memset(bar,' ',64);
+		memset(bar,'*',x>>4);
+		printf("ADC: %s%04x\n", bar,x);
+		Delay_Ms(50);
+	}
+#endif
+
+	while(1){
+		uint8_t x = receive();
+		printf("%c",x);
+	}
+
+
 	NVIC_SystemReset();
-
-
 }
 
 void EXTI7_0_IRQHandler( void ) __attribute__((interrupt));
@@ -279,11 +416,10 @@ void EXTI7_0_IRQHandler( void )
 
 	while((GPIOD->INDR & (1<<7)) == 0) {};
 
-	// AHB prescaler is 32
-	if (SysTick->CNT - start > 16*DELAY_MS_TIME) { // 512ms
+	if (SysTick->CNT - start > 500*DELAY_MS_TIME) {
 		mode = MODE_LEARN;
 	}
-	if (SysTick->CNT - start > DELAY_MS_TIME/2) { // 16ms
+	if (SysTick->CNT - start > 16*DELAY_MS_TIME) {
 		NVIC_SystemReset();
 		while(1) {};
 	}
