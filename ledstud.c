@@ -17,7 +17,7 @@ uint8_t mode __attribute__ ((section (".no_init")));
 
 static inline void draw_frame( const uint8_t* bitmap, uint32_t on, uint32_t off )
 {
-	GPIOD->OUTDR = 1<<0;
+	GPIOD->OUTDR = (1<<0) |(1<<7);
 	GPIOA->OUTDR = 0;
 	GPIOC->OUTDR = bitmap[0];
 	DelaySysTick( on );
@@ -25,7 +25,7 @@ static inline void draw_frame( const uint8_t* bitmap, uint32_t on, uint32_t off 
 	GPIOC->OUTDR = 0x00FF;
 	DelaySysTick( off-on );
 
-	GPIOD->OUTDR = 0;
+	GPIOD->OUTDR = 0 |(1<<7);
 	GPIOA->OUTDR = 1<<2;
 	GPIOC->OUTDR = bitmap[1];
 	DelaySysTick( on );
@@ -33,7 +33,7 @@ static inline void draw_frame( const uint8_t* bitmap, uint32_t on, uint32_t off 
 	GPIOC->OUTDR = 0x00FF;
 	DelaySysTick( off-on );
 
-	GPIOD->OUTDR = 0;
+	GPIOD->OUTDR = 0 |(1<<7);
 	GPIOA->OUTDR = 1<<1;
 	GPIOC->OUTDR = bitmap[2];
 	DelaySysTick( on );
@@ -41,7 +41,7 @@ static inline void draw_frame( const uint8_t* bitmap, uint32_t on, uint32_t off 
 	GPIOC->OUTDR = 0x00FF;
 	DelaySysTick( off-on );
 
-	GPIOD->OUTDR = 1<<6;
+	GPIOD->OUTDR = (1<<6) |(1<<7);
 	GPIOA->OUTDR = 0;
 	GPIOC->OUTDR = bitmap[3];
 	DelaySysTick( on );
@@ -49,7 +49,7 @@ static inline void draw_frame( const uint8_t* bitmap, uint32_t on, uint32_t off 
 	GPIOC->OUTDR = 0x00FF;
 	DelaySysTick( off-on );
 
-	GPIOD->OUTDR = 1<<5;
+	GPIOD->OUTDR = (1<<5) |(1<<7);
 	GPIOA->OUTDR = 0;
 	GPIOC->OUTDR = bitmap[4];
 	DelaySysTick( on );
@@ -57,7 +57,7 @@ static inline void draw_frame( const uint8_t* bitmap, uint32_t on, uint32_t off 
 	GPIOC->OUTDR = 0x00FF;
 	DelaySysTick( off-on );
 
-	GPIOD->OUTDR = 1<<4;
+	GPIOD->OUTDR = (1<<4) |(1<<7);
 	GPIOA->OUTDR = 0;
 	GPIOC->OUTDR = bitmap[5];
 	DelaySysTick( on );
@@ -65,7 +65,7 @@ static inline void draw_frame( const uint8_t* bitmap, uint32_t on, uint32_t off 
 	GPIOC->OUTDR = 0x00FF;
 	DelaySysTick( off-on );
 
-	GPIOD->OUTDR = 1<<3;
+	GPIOD->OUTDR = (1<<3) |(1<<7);
 	GPIOA->OUTDR = 0;
 	GPIOC->OUTDR = bitmap[6];
 	DelaySysTick( on );
@@ -73,7 +73,7 @@ static inline void draw_frame( const uint8_t* bitmap, uint32_t on, uint32_t off 
 	GPIOC->OUTDR = 0x00FF;
 	DelaySysTick( off-on );
 
-	GPIOD->OUTDR = 1<<2;
+	GPIOD->OUTDR = (1<<2) |(1<<7);
 	GPIOA->OUTDR = 0;
 	GPIOC->OUTDR = bitmap[7];
 	DelaySysTick( on );
@@ -87,56 +87,56 @@ static inline void draw_frame_fast( const uint8_t* bitmap )
 //#define fast_delay() asm volatile("\nnop\nnop\nnop\nnop\nnop\nnop\nnop")
 #define fast_delay() DelaySysTick(10)
 
-	GPIOD->OUTDR = 1<<0;
+	GPIOD->OUTDR = (1<<0) |(1<<7);
 	GPIOA->OUTDR = 0;
 	GPIOC->OUTDR = bitmap[0];
 	fast_delay();
 
 	GPIOC->OUTDR = 0x00FF;
 
-	GPIOD->OUTDR = 0;
+	GPIOD->OUTDR = 0 |(1<<7);
 	GPIOA->OUTDR = 1<<2;
 	GPIOC->OUTDR = bitmap[1];
 	fast_delay();
 
 	GPIOC->OUTDR = 0x00FF;
 
-	GPIOD->OUTDR = 0;
+	GPIOD->OUTDR = 0 |(1<<7);
 	GPIOA->OUTDR = 1<<1;
 	GPIOC->OUTDR = bitmap[2];
 	fast_delay();
 
 	GPIOC->OUTDR = 0x00FF;
 
-	GPIOD->OUTDR = 1<<6;
+	GPIOD->OUTDR = (1<<6) |(1<<7);
 	GPIOA->OUTDR = 0;
 	GPIOC->OUTDR = bitmap[3];
 	fast_delay();
 
 	GPIOC->OUTDR = 0x00FF;
 
-	GPIOD->OUTDR = 1<<5;
+	GPIOD->OUTDR = (1<<5) |(1<<7);
 	GPIOA->OUTDR = 0;
 	GPIOC->OUTDR = bitmap[4];
 	fast_delay();
 
 	GPIOC->OUTDR = 0x00FF;
 
-	GPIOD->OUTDR = 1<<4;
+	GPIOD->OUTDR = (1<<4) |(1<<7);
 	GPIOA->OUTDR = 0;
 	GPIOC->OUTDR = bitmap[5];
 	fast_delay();
 
 	GPIOC->OUTDR = 0x00FF;
 
-	GPIOD->OUTDR = 1<<3;
+	GPIOD->OUTDR = (1<<3) |(1<<7);
 	GPIOA->OUTDR = 0;
 	GPIOC->OUTDR = bitmap[6];
 	fast_delay();
 
 	GPIOC->OUTDR = 0x00FF;
 
-	GPIOD->OUTDR = 1<<2;
+	GPIOD->OUTDR = (1<<2) |(1<<7);
 	GPIOA->OUTDR = 0;
 	GPIOC->OUTDR = bitmap[7];
 	fast_delay();
@@ -246,19 +246,38 @@ void mode_blinky()
 
 }
 
+void EXTI7_0_IRQHandler( void ) __attribute__((interrupt));
+void EXTI7_0_IRQHandler( void )
+{
+	GPIOC->OUTDR = 0x00FF;
+
+	uint32_t start = SysTick->CNT;
+
+	while((GPIOD->INDR & (1<<7)) == 0) {};
+
+	// AHB prescaler is 32, delay_ms_time/2 will be 16ms
+	if (SysTick->CNT - start > DELAY_MS_TIME/2) {
+		NVIC_SystemReset();
+		while(1) {};
+	}
+
+	EXTI->INTFR = 1<<7;
+}
+
 int main()
 {
 	SystemInit();
 
-	// check reset-pin flag
-	mode = (RCC->RSTSCKR & RCC_PINRSTF)? (mode+1)%NUM_MODES : 0 ;
+	// check software reset and not power-on reset
+	mode = ((RCC->RSTSCKR & RCC_SFTRSTF) && !(RCC->RSTSCKR & RCC_PORRSTF))? (mode+1)%NUM_MODES : 0 ;
 
 	RCC->RSTSCKR |= RCC_RMVF; // clear reset flags
+
 
 	if (mode == MODE_SLEEP) {
 
 		// Power consumption is reduced significantly if GPIOs are enabled and set to pull-up
-		RCC->APB2PCENR |= RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOC | RCC_APB2Periph_GPIOD;
+		RCC->APB2PCENR |= RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOC | RCC_APB2Periph_GPIOD | RCC_AFIOEN;
 
 		GPIOA->CFGLR = (GPIO_CNF_IN_PUPD<<(4*2)) |
 					   (GPIO_CNF_IN_PUPD<<(4*1));
@@ -299,16 +318,21 @@ int main()
 					  GPIO_BSHR_BS1 |
 					  GPIO_BSHR_BS0;
 
+		AFIO->EXTICR = 3<<(7*2); // PD7 [NRST]
+		EXTI->EVENR = 1<<7;
+		EXTI->FTENR = 1<<7; // falling edge trigger
+
 		NVIC->SCTLR |= (1<<2); //SLEEPDEEP
 		PWR->CTLR &= PWR_CTLR_PDDS;
-		asm volatile ("wfi");
+		__WFE();
+		NVIC_SystemReset();
 	}
 
 	// All other modes - enable display
 
 	RCC->CFGR0 |= (12<<4); // set AHB prescaler to 32 -> sysclk 1.5MHz
 
-	RCC->APB2PCENR |= RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOD | RCC_APB2Periph_GPIOC;
+	RCC->APB2PCENR |= RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOD | RCC_APB2Periph_GPIOC | RCC_APB2Periph_AFIO;
 
 	// Anodes shuffled
 	// D0 : col1
@@ -328,6 +352,7 @@ int main()
 				 | ((GPIO_Speed_10MHz | GPIO_CNF_OUT_PP)<<(4*4))
 				 | ((GPIO_Speed_10MHz | GPIO_CNF_OUT_PP)<<(4*5))
 				 | ((GPIO_Speed_10MHz | GPIO_CNF_OUT_PP)<<(4*6))
+				 | (GPIO_CNF_IN_PUPD << (4*7))
 				 | (GPIO_CNF_IN_FLOATING << (4*1)); // don't disable SWIO
 
 	// GPIO C rows / cathodes, in order
@@ -339,6 +364,16 @@ int main()
 				 | ((GPIO_Speed_10MHz | GPIO_CNF_OUT_PP)<<(4*5))
 				 | ((GPIO_Speed_10MHz | GPIO_CNF_OUT_PP)<<(4*6))
 				 | ((GPIO_Speed_10MHz | GPIO_CNF_OUT_PP)<<(4*7));
+
+	//Configure reset pin as GPIO with pullup triggering ISR
+	GPIOD->OUTDR |= (1<<7); // pull up
+	// wait for release before enabling interupt
+	while((GPIOD->INDR & (1<<7)) == 0) {};
+
+	AFIO->EXTICR = 3<<(7*2); // PD7 [NRST]
+	EXTI->INTENR = 1<<7;
+	EXTI->FTENR = 1<<7; // falling edge trigger
+	NVIC_EnableIRQ( EXTI7_0_IRQn );
 
 	switch (mode) {
 		case MODE_VIDEO: mode_video();
