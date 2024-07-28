@@ -23,7 +23,12 @@ enum {
 	MODE_LEARN = 99 // outside of modulo loop
 };
 
-uint8_t mode __attribute__ ((section (".no_init")));
+volatile uint8_t mode __attribute__ ((section (".no_init")));
+char msg[128] __attribute__ ((section (".no_init")));
+char msg_length __attribute__ ((section (".no_init")));
+
+const char msg_default[] = " This badge is powered by a CH32V003, a RISC-V 48MHz microcontroller  ";
+
 
 static inline void draw_frame( const uint8_t* bitmap, uint32_t on, uint32_t off )
 {
@@ -189,7 +194,6 @@ static inline void set_character( uint8_t* dst, char c )
 
 void mode_text()
 {
-	static const char msg[] = " This badge is powered by a CH32V003, a RISC-V 48MHz microcontroller  ";
 
 	unsigned int timer = 0;
 	uint8_t framebuffer[20] = { [0 ... 15] = 0xFF};
@@ -211,7 +215,7 @@ void mode_text()
 				fraction=0;
 				cursor++;
 			}
-			if (cursor == (sizeof msg) -2) {
+			if (cursor == msg_length -2) {
 				cursor=0;
 			}
 		}
@@ -301,10 +305,13 @@ uint8_t receive()
 	#define bitperiod 150
 	#define numbits 7
 	uint8_t x = 0;
-	uint32_t until;
+	uint32_t until = SysTick->CNT + 5000*DELAY_MS_TIME;
 
 	// wait for start condition
-	while (read_input());
+	while (read_input()) {
+		// no change for 5 seconds
+		if ( ((int32_t)( SysTick->CNT - until )) > 0 ) NVIC_SystemReset();
+	};
 	until = SysTick->CNT;
 	#define wait(n) \
 		until += (n)*DELAY_MS_TIME; \
@@ -398,11 +405,23 @@ void mode_learn()
 	}
 #endif
 
-	while(1){
-		uint8_t x = receive();
-		printf("%c",x);
-	}
+	char buf[128];
+	unsigned char c=0;
+	buf[c++] = ' ';
+	uint8_t x;
 
+	while(receive() != 0x0A); // start
+	while(1) {
+		x = receive();
+		if (x<32 || x>126) break;
+		buf[c++] = x;
+	}
+	if (x==0x0D) { // end
+		buf[c++] = ' ';
+		buf[c++] = ' ';
+		memcpy(msg, buf, c);
+		msg_length = c;
+	}
 
 	NVIC_SystemReset();
 }
@@ -435,7 +454,11 @@ int main()
 		// check software reset and not power-on reset
 		if ((RCC->RSTSCKR & RCC_SFTRSTF) && !(RCC->RSTSCKR & RCC_PORRSTF)) {
 			mode = (mode+1)%NUM_MODES;
-		} else mode = 0;
+		} else {
+			mode = 0;
+			msg_length = sizeof msg_default;
+			memcpy(msg, msg_default, sizeof msg_default);
+		}
 	}
 
 	RCC->RSTSCKR |= RCC_RMVF; // clear reset flags
