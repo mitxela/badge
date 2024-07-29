@@ -411,7 +411,7 @@ void mode_learn()
 	uint8_t x;
 
 	while(receive() != 0x0A); // start
-	while(1) {
+	while(c<124) {
 		x = receive();
 		if (x<32 || x>126) break;
 		buf[c++] = x;
