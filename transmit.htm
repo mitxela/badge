@@ -1,0 +1,58 @@
+<!doctype html>
+
+<div id=square style="width:150px;height:300px;float:left;"></div>
+<div id=square2 style="width:150px;height:300px;float:left;"></div>
+
+<p style="clear:both;">
+<input type=text id=msg placeholder=message maxlength=120>
+<button onclick="send('\n'+document.getElementById('msg').value+'\r')">send</button>
+<code id=dbg></code>
+
+<script>
+var square= document.getElementById("square");
+var square2= document.getElementById("square2");
+var dbg= document.getElementById("dbg");
+var cancel = true;
+
+function setTorch(on){
+  square.style.backgroundColor=on?'white':'black';
+  square2.style.backgroundColor=!on?'white':'black';
+}
+
+function send(data){
+  if (cancel == false) {cancel=true; setTorch(1); return}
+  if (!data.length) return;
+  cancel = false;
+  let bytepointer = 0;
+  let bitpointer = 0;
+  let next = 0;
+  let bitperiod = 150;
+  const numbits = 7;
+
+  let f = function(timestamp){
+
+    if (!next) { next = timestamp }
+
+    if (timestamp>=next) {
+      dbg.innerText = ((bitpointer/(numbits+2) + bytepointer)*100/data.length).toFixed(0) + '%';
+
+      if (bitpointer == 0) { // start condition
+        setTorch(1);
+        bitpointer++;
+      } else if (bitpointer == numbits+1) { // stop condition
+        setTorch(0);
+        bitpointer = 0;
+        if (++bytepointer >= data.length) {cancel = true; dbg.innerText=""}
+      } else {
+        setTorch( (data.charCodeAt(bytepointer) & (1<<(bitpointer-1))) == 0?1:0 )
+        bitpointer++;
+      }
+      next+=bitperiod
+    }
+    if (!cancel) requestAnimationFrame(f)
+  }
+  requestAnimationFrame(f)
+}
+setTorch(1);
+
+</script>
